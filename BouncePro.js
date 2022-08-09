@@ -6,7 +6,7 @@ const ctx = cans.getContext("2d");
 const width = (cans.width = window.innerWidth - 20);
 const height = (cans.height = window.innerHeight - 35);
 let balls_valumn = [];
-let number_of_balls = 20; //在这里修改出现球的总数
+let number_of_balls = 100; //在这里修改出现球的总数
 let v = 3; //在这里修改生成球速度的范围[-v,v];
 let delta = 0.5; //昼夜交替速率
 const default_gy = 0.4; //重力加速度,最好别改
@@ -41,6 +41,7 @@ class Ball {
         this.last_x = 0;
         this.last_y = 0;
     }
+
     draw() {
         ctx.beginPath();
         ctx.fillStyle = this.color;
@@ -334,15 +335,19 @@ function correct_angle(angle) {
 
 function get_amount() {
     //adjust the number of balls
-    let new_number = document.getElementById("balls_amount").value;
-    Number(new_number);
-    if (new_number > cnt) {
-        new_balls(new_number - cnt);
+    let new_number = document.getElementById("number").value;
+    if (new_number > 0 && new_number < 500) {
+        if (new_number > cnt) {
+            new_balls(new_number - cnt);
+        }
+        else
+            balls_valumn.splice(0, cnt - new_balls);
+        number_of_balls = new_number;
+        cnt = new_number;
+        document.getElementById("number").value = "";
     }
     else
-        balls_valumn.splice(0, cnt - new_balls);
-    number_of_balls = new_number;
-    cnt = new_number;
+        alert("Invalid number! Must be less than 500 and not null.");
 }
 
 function root_solution(a, b, c) {
@@ -401,8 +406,8 @@ function new_balls(amount) {
     //add some new balls
     for (var i = 0; i < amount; i++) {
         let r_new = random_int(7, 20);
-        let x_new = random_int(r, width - r);
-        let y_new = random_int(r, height - r);
+        let x_new = random_int(r_new, width - r_new);
+        let y_new = random_int(r_new, height - r_new);
         let velX_new = random(-v, v);
         let velY_new = random(-v, v);
         let color_new = random_color();
