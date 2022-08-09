@@ -1,0 +1,29 @@
+#start{
+    color: dodgerblue;
+    font-size: 44px;
+    font-family: fantasy;
+    font-weight: 600;
+    text-align:center;
+}
+#cnt{
+    font-weight: bold;
+    font-size: 25px;
+}
+#collision{
+    color:blueviolet;
+    font-weight: bold;
+    font-size: 25px;
+}
+#test_value1 {
+    color: cadetblue;
+    font-weight: bold;
+    font-size: 22px;
+}
+#test_value2 {
+    color: cadetblue;
+    font-weight: bold;
+    font-size: 22px;
+}
+#myCanvas {
+    position: absolute;
+}
