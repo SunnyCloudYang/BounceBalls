@@ -293,12 +293,13 @@ function choose_this_ball(ev) {
         }
     }
     if (chosed < cnt) {
-        document.onmousemove = function (e) {
+        let x_pro, y_pro;
+        document.onmousemove = document.ontouchmove = function (e) {
             var e = e;
-            var x_pro = e.layerX;
-            var y_pro = e.layerY;
-            var maxX = width - balls_valumn[chosed].radius;
-            var maxY = height - balls_valumn[chosed].radius;
+            x_pro = e.layerX;
+            y_pro = e.layerY;
+            let maxX = width - balls_valumn[chosed].radius;
+            let maxY = height - balls_valumn[chosed].radius;
             if (x_pro < balls_valumn[chosed].radius) {
                 x_pro = balls_valumn[chosed].radius;
             } else if (x_pro > maxX) {
@@ -314,8 +315,9 @@ function choose_this_ball(ev) {
             balls_valumn[chosed].velX = x_pro - balls_valumn[chosed].last_x;
             balls_valumn[chosed].velY = y_pro - balls_valumn[chosed].last_y;
         };
-        document.onmouseup = function () {
+        document.onmouseup = document.ontouchend = document.ontouchcancel = function () {
             document.onmousemove = "";
+            chosed = cnt;
         };
     }
 }
@@ -451,7 +453,7 @@ function moving_loop() {
     for (var i = 0; i < cnt; i++) {
         balls_valumn[i].draw();
     }
-    myCanvas.onmousedown = choose_this_ball;
+    myCanvas.onmousedown = myCanvas.ontouchstart = choose_this_ball;
     summing_flag = (summing_flag + 1) % 30; //为了降低刷新速率，引入flag使其每30个循环统计一次
     if (summing_flag == 0) {
         cnt_of_balls_now.innerHTML = "Number of balls now: "
