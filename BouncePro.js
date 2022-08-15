@@ -8,6 +8,7 @@ const height = (cans.height = window.innerHeight - 35);
 let balls_valumn = [];
 let number_of_balls = 100; //在这里修改出现球的总数
 let v = 3; //在这里修改生成球速度的范围[-v,v];
+let vmax = 8;
 let delta = 0.5; //昼夜交替速率
 const default_gy = 0.4; //重力加速度,最好别改
 const g_uni = 0.667; //万有引力常量
@@ -30,8 +31,8 @@ class Ball {
     constructor(x, y, velX, velY, color, r) {
         this.x = x;
         this.y = y;
-        this.velX = velX;
-        this.velY = velY;
+        this.vx = velX;
+        this.vy = velY;
         this.color = color;
         this.radius = r;
         this.mess = rou * r ** 3;
@@ -52,62 +53,64 @@ class Ball {
         if (this.x <= this.radius) {
             //rebound at left
             this.x = this.radius;
-            this.velX = Math.abs(recovery * this.velX);
+            this.vx = Math.abs(recovery * this.vx);
         } else if (this.x >= width - this.radius) {
             //rebound at right
             this.x = width - this.radius;
-            this.velX = -recovery * Math.abs(this.velX);
+            this.vx = -recovery * Math.abs(this.vx);
         }
         if (this.y <= this.radius) {
             //rebound at ceil
             this.y = this.radius;
-            this.velY = Math.abs(recovery * this.velY);
+            this.vy = Math.abs(recovery * this.vy);
         } else if (gravity === 0 && this.y >= height - this.radius) {
             //always rebound at floor when no gravity
             this.y = height - this.radius;
-            this.velY = -Math.abs(recovery * this.velY);
+            this.vy = -Math.abs(recovery * this.vy);
         }
         if (
             gravity === 1 &&
             this.y >= height - this.radius &&
-            Math.abs(this.velY) > 0.5
+            Math.abs(this.vy) > 0.5
         ) {
             //rebound at floor when speed is fast in gravity mode
             this.y = height - this.radius;
-            this.velY = -recovery * Math.abs(this.velY);
-            this.velY += 1.5 * gy;
+            this.vy = -recovery * Math.abs(this.vy);
+            this.vy += 1.5 * gy;
         }
         if (
             gravity === 1 &&
             this.y >= height - this.radius - 1 &&
-            Math.abs(this.velY) <= 0.5
+            Math.abs(this.vy) <= 0.5
         ) {
             //stop bounding at floor in gravity mode
-            this.velY = 0;
+            this.vy = 0;
             this.y = height - this.radius;
-            if (Math.abs(this.velX) > Math.abs(this.ax) && energy_loss === 1)
-                this.fri_ax = (-0.007 * Math.abs(this.velX)) / this.velX;
-            if (Math.abs(this.velX) <= Math.abs(this.ax) && energy_loss === 1) {
-                this.velX = 0;
+            if (Math.abs(this.vx) > Math.abs(this.ax) && energy_loss === 1)
+                this.fri_ax = (-0.007 * Math.abs(this.vx)) / this.vx;
+            if (Math.abs(this.vx) <= Math.abs(this.ax) && energy_loss === 1) {
+                this.vx = 0;
                 this.fri_ax = 0;
             }
         }
         this.last_x = this.x;
         this.last_y = this.y; //choose
-        this.x += this.velX;
-        this.y += this.velY;
-        this.velX += this.ax;
-        this.velY += this.ay;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx += this.ax;
+        this.vy += this.ay;
+        this.vx = this.vx > vmax ? vmax : this.vx;
+        this.vy = this.vy > vmax ? vmax : this.vy;
         if (
             gravity === 1 &&
-            (this.y < height - this.radius - 1 || Math.abs(this.velY) > 1)
+            (this.y < height - this.radius - 1 || Math.abs(this.vy) > 1)
         ) {
             //acceleration of y
-            this.velY += gy;
+            this.vy += gy;
         }
         if (energy_loss === 1) {
             //acceleration of x
-            this.velX += this.fri_ax;
+            this.vx += this.fri_ax;
         }
     }
     a_gravation(serialNumber) {
@@ -188,13 +191,13 @@ class Ball {
     detect_collision_step2(serialNumber) {
         //这里求解出了两个小球相撞的精确时间
         let small_root = root_solution(
-            (balls_valumn[serialNumber].velX - this.velX) ** 2 +
-            (balls_valumn[serialNumber].velY - this.velY) ** 2,
+            (balls_valumn[serialNumber].velX - this.vx) ** 2 +
+            (balls_valumn[serialNumber].velY - this.vy) ** 2,
             2 *
             ((balls_valumn[serialNumber].x - this.x) *
-                (balls_valumn[serialNumber].velX - this.velX) +
+                (balls_valumn[serialNumber].velX - this.vx) +
                 (balls_valumn[serialNumber].y - this.y) *
-                (balls_valumn[serialNumber].velY - this.velY)),
+                (balls_valumn[serialNumber].velY - this.vy)),
             (balls_valumn[serialNumber].x - this.x) ** 2 +
             (balls_valumn[serialNumber].y - this.y) ** 2 -
             (balls_valumn[serialNumber].radius + this.radius) ** 2
@@ -202,83 +205,68 @@ class Ball {
         if (small_root) return small_root;
         else return 0;
     }
-    deal_with_collision() {
-        for (var i = 0; i < cnt; i++) {
-            if (this.detect_collision_step1(i)) {
-                let small_root = this.detect_collision_step2(i);
-                if (small_root /*&& (this.velY !== 0)*/) {
-                    let collide_X1 = this.x + small_root * this.velX; //利用碰撞精确时间,计算碰撞瞬间小球的位置
-                    let collide_Y1 = this.y + small_root * this.velY;
-                    let collide_X2 =
-                        balls_valumn[i].x + small_root * balls_valumn[i].velX;
-                    let collide_Y2 =
-                        balls_valumn[i].y + small_root * balls_valumn[i].velY;
-                    if (collide_Y1 - collide_Y2 === 0) collide_Y1 = collide_Y2 + 0.00001;
-                    let theta = correct_angle(
-                        Math.atan((collide_X1 - collide_X2) / (collide_Y1 - collide_Y2))
-                    );
-                    let vx = -this.velX;
-                    let vy = -this.velY;
-                    let sin_theta = Math.sin(theta);
-                    let cos_theta = Math.cos(theta);
-                    let v11 = vx * cos_theta + vy * sin_theta;
-                    let v12 = -vx * sin_theta + vy * cos_theta;
-                    let vx2 = -balls_valumn[i].velX;
-                    let vy2 = -balls_valumn[i].velY;
-                    let v21 = vx2 * cos_theta + vy2 * sin_theta;
-                    let v22 = -vx2 * sin_theta + vy2 * cos_theta;
 
-                    if (eating_mode === 0 || this.radius - balls_valumn[i].radius < 10) {
-                        this.velX =
-                            -v11 * cos_theta -
-                            (sin_theta *
-                                ((this.mess - balls_valumn[i].mess) * v12 +
-                                    2 * balls_valumn[i].mess * v22)) /
-                            (this.mess + balls_valumn[i].mess);
-                        this.velY =
-                            -v11 * sin_theta +
-                            (cos_theta *
-                                ((this.mess - balls_valumn[i].mess) * v12 +
-                                    2 * balls_valumn[i].mess * v22)) /
-                            (this.mess + balls_valumn[i].mess);
-                        if (i !== chosed) {
-                            balls_valumn[i].velX =
-                                -v21 * cos_theta +
-                                (sin_theta *
-                                    (2 * this.mess * v12 +
-                                        (balls_valumn[i].mess - this.mess) * v22)) /
-                                (this.mess + balls_valumn[i].mess);
-                            balls_valumn[i].velY =
-                                -v21 * sin_theta -
-                                (cos_theta *
-                                    (2 * this.mess * v12 +
-                                        (balls_valumn[i].mess - this.mess) * v22)) /
-                                (this.mess + balls_valumn[i].mess);
-                        }
-                    } else if (this.radius - balls_valumn[i].radius >= 10) {
-                        //big ball eat the smaller one
-                        this.velX =
-                            (-this.mess * vx + balls_valumn[i].mess * balls_valumn[i].velX) /
-                            (this.mess + balls_valumn[i].mess);
-                        this.velY =
-                            (-this.mess * vy + balls_valumn[i].mess * balls_valumn[i].velY) /
-                            (this.mess + balls_valumn[i].mess);
-                        balls_valumn[i].velX = 0;
-                        balls_valumn[i].velY = 0;
-                        this.mess += balls_valumn[i].mess;
-                        this.radius = Math.pow(this.mess / rou, 1 / 3);
-                        balls_valumn.splice(i, 1);
-                        number_of_balls--;
-                        cnt--;
-                        was_eaten++;
-                    }
-                }
-            }
+    deal_with_collision(i) {
+        for (let j = i + 1; j < cnt; j++) {
+            checkCollision(balls_valumn[i], balls_valumn[j]);
         }
-    } //模拟碰撞代码结束
+    }
     isInsideBall(event_x, event_y) {
         return (this.x - event_x) ** 2 + (this.y - event_y) ** 2 < this.radius ** 2;
     } //choose
+}
+
+function rotate(x, y, sin, cos, reverse) {
+    return {
+        x: (reverse) ? (x * cos + y * sin) : (x * cos - y * sin),
+        y: (reverse) ? (y * cos - x * sin) : (y * cos + x * sin)
+    };
+}
+
+
+function checkCollision(ball0, ball1) {
+    let dx = ball1.x - ball0.x;
+    let dy = ball1.y - ball0.y;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    // 检测冲突
+    if (dist < ball0.radius + ball1.radius) {
+        let angle = Math.atan2(dy, dx);
+        let sin = Math.sin(angle);
+        let cos = Math.cos(angle);
+
+        // boll0旋转后小球的位置
+        let pos0 = { x: 0, y: 0 };
+        // boll1旋转后小球的位置
+        let pos1 = rotate(dx, dy, sin, cos, true);
+        // ball0旋转后的速度
+        let vel0 = rotate(ball0.vx, ball0.vy, sin, cos, true);
+        // ball1旋转后的速度
+        let vel1 = rotate(ball1.vx, ball1.vy, sin, cos, true);
+
+        let vxTotal = vel0.x - vel1.x;
+        vel0.x = ((ball0.mess - ball1.mess) * vel0.x + 2 * ball1.mess * vel1.x) /
+            (ball0.mess + ball1.mess);
+        vel1.x = vxTotal + vel0.x;
+
+        // 两小球的x坐标加上速度 计算出新的x坐标
+        pos0.x += vel0.x;
+        pos1.x += vel1.x;
+        // 相对于ball0原点为圆心时 旋转回去的坐标
+        let pos0F = rotate(pos0.x, pos0.y, sin, cos, false);
+        let pos1F = rotate(pos1.x, pos1.y, sin, cos, false);
+        // 相对于 原来的坐标
+        ball1.x = ball0.x + pos1F.x;
+        ball1.y = ball0.y + pos1F.y;
+        ball0.x = ball0.x + pos0F.x;
+        ball0.y = ball0.y + pos0F.y;
+        // 速度旋转回去
+        let vel0F = rotate(vel0.x, vel0.y, sin, cos, false);
+        let vel1F = rotate(vel1.x, vel1.y, sin, cos, false);
+        ball0.vx = vel0F.x;
+        ball0.vy = vel0F.y;
+        ball1.vx = vel1F.x;
+        ball1.vy = vel1F.y;
+    }
 }
 
 let chosed = cnt;
@@ -287,8 +275,8 @@ function choose_this_ball(ev) {
     let mouse_down = getEventPosition(ev);
     for (let j = 0; j < cnt; j++) {
         if (balls_valumn[j].isInsideBall(mouse_down.x, mouse_down.y)) {
-            balls_valumn[j].velX = 0;
-            balls_valumn[j].velY = 0;
+            balls_valumn[j].vx = 0;
+            balls_valumn[j].vy = 0;
             chosed = j;
         }
     }
@@ -312,11 +300,13 @@ function choose_this_ball(ev) {
             }
             balls_valumn[chosed].x = x_pro;
             balls_valumn[chosed].y = y_pro;
-            balls_valumn[chosed].velX = x_pro - balls_valumn[chosed].last_x;
-            balls_valumn[chosed].velY = y_pro - balls_valumn[chosed].last_y;
+            balls_valumn[chosed].vx = x_pro - balls_valumn[chosed].last_x;
+            balls_valumn[chosed].vy = y_pro - balls_valumn[chosed].last_y;
         };
         document.onmouseup = document.ontouchend = document.ontouchcancel = function () {
             document.onmousemove = "";
+            balls_valumn[chosed].vx = x_pro - balls_valumn[chosed].last_x;
+            balls_valumn[chosed].vy = y_pro - balls_valumn[chosed].last_y;
             chosed = cnt;
         };
     }
@@ -331,7 +321,8 @@ function getEventPosition(ev) {
 } //choose
 
 function correct_angle(angle) {
-    if (angle < 0) angle += Math.PI;
+    if (angle < 0)
+        angle += Math.PI;
     return angle;
 }
 
@@ -422,43 +413,46 @@ function draw_rect() {
     else if (night_mode === 1) ctx.fillStyle = "rgba(40,40,60,0.2)";
     else if (circulate === 1)
         ctx.fillStyle =
-            "rgba(" +
-            dark_degree +
-            "," +
-            dark_degree +
-            "," +
-            dark_degree +
-            "," +
-            ((0.6 * dark_degree) / 255 + 0.03 * v) +
-            ")";
+            "rgba(" + dark_degree + ","
+            + dark_degree + ","
+            + dark_degree + ","
+            + ((0.6 * dark_degree) / 255 + 0.03 * v) + ")";
     ctx.fillRect(0, 0, width, height);
     if (circulate === 1) {
         dark_degree += delta;
-        if (dark_degree > 276) delta = -delta;
-        else if (dark_degree < -20) delta = Math.abs(delta);
+        if (dark_degree > 276)
+            delta = -delta;
+        else if (dark_degree < -20)
+            delta = Math.abs(delta);
     }
 }
-let summing_flag = 0;
+
 function moving_loop() {
     draw_rect();
     for (var i = 0; i < cnt; i++) {
-        balls_valumn[i].deal_with_collision();
+        balls_valumn[i].deal_with_collision(i);
+        for (let j = i + 1; j < cnt; j++) {
+            if (balls_valumn[i].isInsideBall(balls_valumn[j].x, balls_valumn[j].y)) {
+                balls_valumn[i].mess += balls_valumn[j].mess;
+                balls_valumn[i].radius = balls_valumn[i].mess ** (1 / 3);
+                balls_valumn.splice(j, 1);
+                number_of_balls--;
+                cnt--;
+            }
+        }
     }
     for (var i = 0; i < cnt; i++) {
         balls_valumn[i].grav_around();
     }
     for (var i = 0; i < cnt; i++) {
         balls_valumn[i].update();
-    }
-    for (var i = 0; i < cnt; i++) {
         balls_valumn[i].draw();
     }
     myCanvas.onmousedown = myCanvas.ontouchstart = choose_this_ball;
-    summing_flag = (summing_flag + 1) % 30; //为了降低刷新速率，引入flag使其每30个循环统计一次
-    if (summing_flag == 0) {
+    setInterval(() => {
         cnt_of_balls_now.innerHTML = "Number of balls now: "
-                                   + sum_the_cnt_of_balls();
-    }
+            + sum_the_cnt_of_balls();
+    }, 200);
     requestAnimationFrame(moving_loop);
 }
 moving_loop();

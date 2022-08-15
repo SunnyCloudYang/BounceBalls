@@ -68,18 +68,18 @@ document.getElementById("energy_loss").onclick = function () {
 
 document.getElementById("Ball_Universe").onclick = function () {
     if (universe_mode === 0) {
-        let conf;
+        let conf = true;
         if (cnt > 50) {
             conf = confirm("NOT SUGGESTED to open this mode with too much balls.\n" + "It'll be in a MESS and balls may FLY OUT.\n"
                 + "ARE YOU SURE TO GO ON?");
         }
         if (conf === true) {
-            universe_mode = true;
+            universe_mode = 1;
             uni_btn.color = "white";
             uni_btn.backgroundColor = "#002e63";
         }
     } else {
-        universe_mode = false;
+        universe_mode = 0;
         uni_btn.color = "black";
         uni_btn.backgroundColor = "rgba(225,225,225,1)";
     }
