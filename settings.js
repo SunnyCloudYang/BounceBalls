@@ -73,7 +73,7 @@ document.getElementById("Ball_Universe").onclick = function () {
             conf = confirm("NOT SUGGESTED to open this mode with too much balls.\n" + "It'll be in a MESS and balls may FLY OUT.\n"
                 + "ARE YOU SURE TO GO ON?");
         }
-        if (conf === true) {
+        if (conf) {
             universe_mode = 1;
             uni_btn.color = "white";
             uni_btn.backgroundColor = "#002e63";
