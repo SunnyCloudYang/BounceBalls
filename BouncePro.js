@@ -4,7 +4,7 @@ let myCanvas = document.getElementById("myCanvas");
 let change_amount = document.getElementById("balls_amount");
 const ctx = cans.getContext("2d");
 const width = (cans.width = window.innerWidth - 20);
-const height = (cans.height = window.innerHeight - 35);
+const height = (cans.height = window.innerHeight - 30);
 let balls_valumn = [];
 let number_of_balls = 100; //在这里修改出现球的总数
 let v = 3; //在这里修改生成球速度的范围[-v,v];
