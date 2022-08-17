@@ -12,6 +12,9 @@ document.getElementById("night_mode").onclick = function () {
     day_btn.backgroundColor = "rgba(225,225,225,1)";
     circ_btn.backgroundColor = "rgba(225,225,225,1)";
 };
+document.getElementById("night_mode").ondblclick = function () {
+    fuzzy = -fuzzy;
+}
 
 document.getElementById("day_mode").onclick = function () {
     dark_degree = 255;
@@ -22,6 +25,9 @@ document.getElementById("day_mode").onclick = function () {
     day_btn.backgroundColor = "white";
     circ_btn.backgroundColor = "rgba(225,225,225,1)";
 };
+document.getElementById("day_mode").ondblclick = function () {
+    fuzzy = -fuzzy;
+}
 
 document.getElementById("circulation").onclick = function () {
     circulate = 1;
