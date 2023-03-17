@@ -10,13 +10,10 @@
 
 宇宙架构说明： 类Newton力学体系，类Galileo变换，SCY式(化名)碰撞方式；
 
-## 传送教程
+## 版本说明
 
-1. 下载BounceBalls的所有文件；
-2. 其实只下载html文件<del>也可以</del>现在不太行，除非你会改；
-3. 其实现在不下载html文件也可以，只要在**看完之后**[点这里](./BounceBalls.html)；
-4. 打开[html文件](./BounceBalls.html)，传送进入小球宇宙；
-5. **\>\>\>[传送门->进入球宇宙](./BounceBalls.html)\<\<\<** Enjoy and endure the balls!
+1. BounceBalls.html是老版本，UI较为简陋，也基本不再更新。但是允许的最大小球数目较高，没有特别需求还是建议使用PureBalls.html；
+2. PureBalls.html是新版本，UI较为美观，以后如果还想加什么新功能的话多半会考虑在这上面加，代码也经过一些整理，相对整洁那么一点点；
 
 ## 使用说明（请认真阅读！）
 
@@ -71,4 +68,4 @@ Contact me if confused at <sunnycloudyang@outlook.com>
 <br>
 
 Last updated:
-2022-8-23 1:29
+2023-3-17 18:50
